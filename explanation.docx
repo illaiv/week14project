@@ -1,0 +1,244 @@
+This was my CRUD project concept for my CIT 215 final project. I made a 3 section gaming library. This library is stored by genres, so the user can look at the games in the libaray and edit the entries.
+The user can create/delete/update/read the entries listed. 
+The three genres are: MOBAS, FPS, and MMO's.
+
+explanation/summary of code: 
+
+/** @format */
+let games;
+let panel_class;
+
+
+const setUp = () => {
+    console.log("in setup");
+    $("#mmo").on("click", createPanel);
+    $("#moba").on("click", createPanel);
+    $("#fps").on("click", createPanel);
+};
+
+games and panel_class are variables which will associate the genre of the game with the tab the user is selecting. 
+
+setUp function is created runs the document when ready.  The createpanel function will be ran when the specific genre of game is selected and laod the correct data. 
+
+const createPanel = (event) => {
+    console.log("createPanel -- event --", event);
+    panel_class = event.target.id;
+    console.log("panel_class: ", panel_class);
+
+    $(".games").html(`<div class=${panel_class}></div>`);
+    let area = $(`.games .${panel_class}`);
+    console.log("AREA:", area);
+
+    games = panel_class === "mmo" ? getAllMmosAPI() :
+            panel_class === "moba" ? getAllMobasAPI() : getAllFpsAPI();
+    console.log(games);
+
+The id/genre is accessed and creates panel_class and stores that genre in the console log for verification. The function updates the DOM to reflect the data loaded onto the page from the corresponding array based on the API functions. 
+
+ames.forEach((game) => {
+let gameLine = $(
+    `<div class="borderLine">
+    <div class = "info">${game.game_name} made by ${game.game_publisher} <img src="images/${game.game_name}.png" alt="$game.game_name}" /></div>
+    <div class="crud_buttons">
+    <button class="view">View</button>
+    <button class="update">Update</button>
+    <button class="remove">Remove</button>
+    </div>
+    <div class="showInfo"></div>
+    </div>`
+         
+);
+area.append(gameLine);
+});
+
+I am utilizing forEach to go through the games array. A new line of data is represented as gameLine whenever there's a new game being introduced. The buttons are also attached to these individual lines. 
+
+
+});
+
+let createEntry = 
+$(`<span>Use the Create button to add a new ${panel_class} to the library.</span>
+    <div class="crud_buttons"><button class="create">Create</button></div>`);
+$(`.games`).prepend(createEntry);
+$(".crud_buttons .create").on("click", createHandler);
+
+
+$(".borderLine button").on("click", (e) => {
+const target = $(e.target);
+console.log(target[0]);
+handler(target[0]);
+
+});
+};
+
+Variable createEntry will dynamically reflect the genre selected b ythe user and lets teh user create a new game to the library. The button clicks use createHandler to add that new entry to the array on the DOM, the handler function is also viewing/updating/removing. 
+
+
+
+const handler = (element) => {
+    let elementClass = element.className;
+    let indexOfGame = $(`button.${elementClass}`).index(element);
+    if (indexOfGame >= 0)
+        if (elementClass == "view") {
+            viewHandler(indexOfGame);
+        } else if (elementClass == "update") {
+            updateHandler(indexOfGame); 
+        } else if (elementClass == "remove") {
+            removeHandler(indexOfGame);
+        }
+};
+
+the function handler will check what action has been called between view remove or update. the index is being called to check which index entry is being edited. 
+
+
+
+
+const viewHandler = (index) => {
+    let info = $(".showInfo:eq(" + index + ")");
+    info.html(
+        `${games[index].game_name} was released on ${games[index].release_date}. The game is intended for audiences the ages of ${games[index].game_rating} Is the game competitive?: ${games[index].esports_review}. Is the game free to play?: ${games[index].free_to_play} <button class="close">X</button>`
+    );
+    info.find(".close").on("click", () => {
+   setTimeout(() => {
+    info.html("");
+   }, 500);
+});
+};
+//change
+const updateHandler = (index) => {
+let borderLine = $(`.${panel_class} .borderLine`).eq(index);
+let updatePara = $(`
+<div class="updateForm">
+<input type="text" id="update_game_name" value="${games[index].game_name}" size="21"/>
+publisher: <input type="text" id="update_publisher" value="${games[index].game_publisher}" size="21"/>
+release date: <input type="text" id="update_release_date" value="${games[index].release_date}" size="15"/>
+rating: <input type="text" id="update_rating" value="${games[index].game_review}" size="9"/>
+esports review: <input type="text" id="update_free_to_play" value="${games[index].free_to_play}" size="8"/>
+<button class="save_update">Save</button>
+</div>
+`);
+borderLine.html(updatePara);
+
+
+
+the viewHandler(index) will pass an argument through the games array and provide information to the user when buttons are selected. The showInfo element is utilized to display the game name, release date, game rating, and  esports review, finally free_to_play information. The close button will get rid of the details being shown on the DOM. 
+
+
+The updateHandler function allows the user to simply update the games information matched with the correct index. A save button is also included to save any updated made to the entered data. The original array can be changed and edited. 
+
+$(".save_update").on("click", function () {
+    games[index] = {
+        game_name: $("#update_game_name").val(),
+        game_publisher: $("#update_publisher").val(),
+        release_date: $("#update_release_date").val(),
+        game_review: $("#update_rating").val(),
+        esports_review: $("#update_esports_review").val(),
+        free_to_play: $("#update_free_to_play").val(),
+    };
+
+    //change
+    borderLine.html(`
+         <div class = "info">${games[index].game_name} made by ${games[index].game_publisher} <img src="images/${games[index].game_name}.png" alt="$games[index].game_name}" /></div>
+        <div class=crud_buttons">
+        <button class="view">View</button>
+        <button class="update">Update</button>
+        <button class="remove">Remove</button>
+        </div>
+        <div class="showInfo"></div>
+        `);
+$(".borderLine button").on("click", (e) => {
+    const target = $(e.target);
+    console.log(target);
+    console.log(target[0]);
+    handler(target[0]);
+
+});
+});
+};
+
+Save_update is getting an on click event which will essentially allow the user to save changes made. The updated data is obtained with .val() and creates new objects and enters it into the correct index position. 
+borderline.html will will be updated to the new data and display on the web page.
+
+const removeHandler = (index) => {
+    let item = $(`.${panel_class} .borderLine`).eq(index);
+    item.remove();
+    games.splice(index, 1);
+    console.log(games);
+};
+
+const createHandler = () => {
+    $("button.create").prop("disabled", true);
+   let createPara = $(`
+  <input type="text" id="new_game_name" value="Game Name" size="21"/>
+  Publisher: <input type="text" id="new_publisher" value="Publisher" size="21"/>
+  Release Date: <input type="text" id="new_release_date" value="Release Date" size="12"/>
+  Rating: <input type="text" id="new_rating" value="Rating" size="9"/>
+  Esports Review: <input type="text" id="new_free_to_play" value="Yes/No" size="13"/>
+  <button class ="save_new">Save</button>
+    
+`);
+
+removeHandler function is the main method of removing games from the array. borderLine is selected in the selected genre and removes it from the dom. Splicing the index removes an element at the index the user has specified selection of. 
+The update is logged to the console. 
+
+The createHandler function handles the user's creation of a new game. The button will be disabled after it is clicked to prevent glitches and bugs when trying to enter new data.  The dom is updated to reflect the new changes. 
+
+
+$(".crud_buttons .create").after(createPara);
+
+createPara is moidified with the new data that has been created by the user. 
+
+$(".save_new").on("click", function () {
+let newGame = {
+    game_name: $("input#new_game_name").val(),
+    game_publisher: $("input#new_publisher").val(),
+    release_date: $("input#new_release_date").val(),
+    game_review: $("input#new_rating").val(),
+    esports_review: $("input#new_esports_review").val(),
+    free_to_play: $("input#new_free_to_play").val(),
+
+};
+
+When a click function is entered. the save button re-assigns the values entered by the user into the specific object. 
+
+games.push(newGame);
+
+newGame pushes the new game the user has made to the array. 
+
+
+let area = $(`.games .${panel_class}`);
+let gameLine = $(
+    `<div class="borderLine">
+     <div class = "info">${game.game_name} made by ${game.game_publisher} <img src="images/${game.game_name}.png" alt="$game.game_name}" /></div>
+     <div class="crud_buttons">
+     <button class="view">View</button>
+     <button class="update">Update</button>
+     <button class="remove">Remove</button>
+     </div>
+     <div class="showInfo"></div>
+     </div>`
+);
+The variable obtains an object and stores the data in the specific area. The genre of game is checked and inserted into the proper field. 
+
+area.append(gameLine);
+
+new game is being adds the right game into the right genre 
+
+$(".borderLine button").on("click", (e) => {
+    const target = $(e.target);
+    handler(target[0]);
+});
+
+triggers an event when a button is clicked in .borderLine 
+e.target gets the clicked action 
+handler function selects and targets at the 0 position. 
+
+
+$("button.create").prop("disabled", false);
+
+createPara.remove();
+});
+create button is re-anbled to click 
+};
+$(document).ready(setUp);
+
